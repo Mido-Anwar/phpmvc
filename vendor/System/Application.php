@@ -24,7 +24,13 @@ class Application
 
         pre($this->file);
     }
-
+    /**
+     * run the application
+     * @return void
+     */
+    public function run()
+    {
+    }
     /**
      * register classes in spl
      * 
@@ -70,7 +76,24 @@ class Application
 
     public function get($key)
     {
-        return isset($this->container[$key]) ? $this->container[$key] : null;
+        if (!$this->isSharing($key)) {
+            if ($this->isCoreAlias($key)) {
+                $this->share($key, $this->createNewCoreObject($key));
+            } else {
+                die($key . ' not found in app container');
+            }
+        }
+        return $this->container[$key];
+    }
+
+    /**
+     * datermine if the given key is shared
+     * @param string $key
+     * @return bool
+     */
+    public function isSharing($key)
+    {
+        return   isset($this->container[$key]);
     }
     /**
      * Get an instance of the given class.
@@ -82,6 +105,46 @@ class Application
     public function share($key, $value)
     {
         $this->container[$key] = $value;
+    }
+    /**
+     * 
+     * @param string $alias
+     * @return bool
+     */
+    private function isCoreAlias($alias)
+    {
+        $coreClasses = $this->coreClasses();
+        return isset($coreClasses[$alias]);
+    }
+
+    /**
+     * create new object for the cor ebased on given alias
+     * @param string $alias
+     * @return object
+     */
+    private function createNewCoreObject($alias)
+    {
+        $coreClasses = $this->coreClasses();
+        $object = $coreClasses[$alias];
+        return new $object($this);
+    }
+    /**
+     * get all core classes with its aliases
+     * @return array
+     */
+    private function coreClasses()
+    {
+
+        return [
+            'request'  => 'System\\Http\\Request',
+            'response' => 'System\\Http\\Response ',
+            'session'  => 'System\\Session',
+            'cookie'   => 'System\\Cookie',
+            'load'     => 'System\\Loader',
+            'html'     => 'System\\Html',
+            'db'       => 'System\\Database',
+            'view'     => 'System\\View\\ViewFactory',
+        ];
     }
     /**
      * get shered value dynamically

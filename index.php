@@ -9,4 +9,4 @@ use App\Controllers\Users\users;
 $file= new File(__DIR__);
 $app = new Application($file);
 
-new users();
+$app->session->set('name','mido');
